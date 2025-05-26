@@ -44,9 +44,19 @@ jobs:
           echo "📡 Polling deploy status..."
 
           for i in {1..30}; do
-            STATUS=$(curl -s https://api.render.com/v1/deploys/${{ steps.trigger.outputs.deploy_id }} \
+            RESPONSE=$(curl -s https://api.render.com/v1/deploys/${{ steps.trigger.outputs.deploy_id }} \
               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              -H "Accept: application/json" | jq -r 'try .status // "unknown"')
+              -H "Accept: application/json")
+
+            echo "🔎 Deploy API Response: $RESPONSE"
+
+            IS_JSON=$(echo "$RESPONSE" | jq . > /dev/null 2>&1; echo $?)
+            if [ "$IS_JSON" -ne 0 ]; then
+              echo "❌ Invalid response from Render API."
+              exit 1
+            fi
+
+            STATUS=$(echo "$RESPONSE" | jq -r 'try .status // "unknown"')
 
             echo "⏱️  Status: $STATUS"
 
