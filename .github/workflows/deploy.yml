@@ -26,33 +26,40 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
             -H "Accept: application/json")
 
+          echo "🧾 Raw API Response:"
+          echo "$RESPONSE"
+
           DEPLOY_ID=$(echo "$RESPONSE" | jq -r '.id')
-          echo "Triggered deploy ID: $DEPLOY_ID"
+
+          if [ "$DEPLOY_ID" == "null" ] || [ -z "$DEPLOY_ID" ]; then
+            echo "❌ Failed to get deploy ID from Render API."
+            exit 1
+          fi
+
+          echo "✅ Triggered deploy ID: $DEPLOY_ID"
           echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
 
       - name: 🕒 Wait for Render Deployment to Finish
         run: |
-          echo "Polling deploy status..."
+          echo "📡 Polling deploy status..."
 
           for i in {1..30}; do
             STATUS=$(curl -s https://api.render.com/v1/deploys/${{ steps.trigger.outputs.deploy_id }} \
               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-              -H "Accept: application/json" | jq -r '.status')
+              -H "Accept: application/json" | jq -r 'try .status // "unknown"')
 
-            echo "Current status: $STATUS"
+            echo "⏱️  Status: $STATUS"
 
             if [[ "$STATUS" == "live" ]]; then
-              echo "✅ Deployment completed successfully!"
+              echo "✅ Deployment successful!"
               exit 0
             elif [[ "$STATUS" == "failed" ]]; then
               echo "❌ Deployment failed!"
               exit 1
             else
-              echo "⏳ Still in progress... waiting 10s"
               sleep 10
             fi
           done
 
-          echo "❌ Timed out waiting for Render deploy"
+          echo "❌ Timed out waiting for deployment."
           exit 1
-
