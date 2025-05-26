@@ -44,7 +44,7 @@ jobs:
           echo "📡 Polling deploy status..."
 
           for i in {1..30}; do
-            RESPONSE=$(curl -s https://api.render.com/v1/deploys/${{ steps.trigger.outputs.deploy_id }} \
+            RESPONSE=$(curl -s https://api.render.com/v1/services/${{ secrets.RENDER_SERVICE_ID }}/deploys/${{ steps.trigger.outputs.deploy_id }} \
               -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
               -H "Accept: application/json")
 
