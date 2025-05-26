@@ -22,5 +22,8 @@ jobs:
       - name: 📦 Install All Dependencies and Build (via root script)
         run: npm run build
 
+      - name: 📦 Run start
+        run: npm run start
+
       - name: 🚀 Trigger Render Deployment
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
