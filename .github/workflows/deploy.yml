@@ -18,12 +18,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-
-      - name: 📦 Install All Dependencies and Build (via root script)
-        run: npm run build
-
-      - name: 📦 Run start
-        run: npm run start
-
+          
       - name: 🚀 Trigger Render Deployment
         run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
